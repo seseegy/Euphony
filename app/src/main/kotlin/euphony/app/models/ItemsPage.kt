@@ -1,0 +1,8 @@
+package euphony.app.models
+
+import euphony.app.innertube.models.YTItem
+
+data class ItemsPage(
+    val items: List<YTItem>,
+    val continuation: String?,
+)

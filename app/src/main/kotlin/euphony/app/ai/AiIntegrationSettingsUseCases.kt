@@ -1,0 +1,77 @@
+package euphony.app.ai
+
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.Flow
+import euphony.app.constants.AiApiValidationStatus
+import euphony.app.constants.AiProvider
+import javax.inject.Inject
+
+class ObserveAiIntegrationSettingsUseCase
+    @Inject
+    constructor(
+        private val repository: AiIntegrationSettingsRepository,
+    ) {
+        operator fun invoke(): Flow<AiIntegrationSettingsData> = repository.observeSettings()
+    }
+
+class UpdateAiIntegrationSettingsUseCase
+    @Inject
+    constructor(
+        private val repository: AiIntegrationSettingsRepository,
+    ) {
+        suspend fun setProvider(provider: AiProvider) {
+            repository.setProvider(provider)
+        }
+
+        suspend fun setApiKey(apiKey: String) {
+            repository.setApiKey(apiKey)
+        }
+
+        suspend fun setCustomEndpoint(endpoint: String) {
+            repository.setCustomEndpoint(endpoint)
+        }
+
+        suspend fun setSelectedModel(model: String) {
+            repository.setSelectedModel(model)
+        }
+
+        suspend fun setCustomModel(model: String) {
+            repository.setCustomModel(model)
+        }
+
+        suspend fun setCustomPrompt(prompt: String) {
+            repository.setCustomPrompt(prompt)
+        }
+
+        suspend fun setRequestParameters(value: String) {
+            repository.setRequestParameters(value)
+        }
+    }
+
+class FetchAiModelsUseCase
+    @Inject
+    constructor(
+        private val repository: AiIntegrationSettingsRepository,
+    ) {
+        suspend operator fun invoke(config: AiServiceConfig): List<AiModelOption> =
+            repository.fetchModels(config)
+    }
+
+class TestAiIntegrationUseCase
+    @Inject
+    constructor(
+        private val repository: AiIntegrationSettingsRepository,
+    ) {
+        suspend operator fun invoke(): Boolean {
+            val config = repository.currentSettings().toServiceConfig()
+            try {
+                repository.test(config)
+                return repository.setValidationStatus(AiApiValidationStatus.SUCCESS, config)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                if (repository.setValidationStatus(AiApiValidationStatus.FAILED, config)) throw e
+                return false
+            }
+        }
+    }

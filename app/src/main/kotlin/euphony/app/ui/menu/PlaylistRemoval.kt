@@ -1,0 +1,20 @@
+package euphony.app.ui.menu
+
+import euphony.app.db.entities.PlaylistSongMap
+import euphony.app.innertube.YouTube
+
+suspend fun removeSongFromRemotePlaylist(
+    playlistBrowseId: String,
+    playlistSongMap: PlaylistSongMap,
+): Result<Unit> =
+    runCatching {
+        val setVideoIds =
+            playlistSongMap.setVideoId?.let(::listOf)
+                ?: YouTube.playlistEntrySetVideoIds(playlistBrowseId, playlistSongMap.songId).getOrThrow()
+
+        setVideoIds
+            .distinct()
+            .forEach { setVideoId ->
+                YouTube.removeFromPlaylist(playlistBrowseId, playlistSongMap.songId, setVideoId).getOrThrow()
+            }
+    }

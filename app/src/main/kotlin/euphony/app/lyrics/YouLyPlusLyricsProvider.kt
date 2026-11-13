@@ -1,0 +1,52 @@
+package euphony.app.lyrics
+
+import android.content.Context
+import android.util.Log
+import euphony.app.constants.EnableYouLyPlusLyricsKey
+import euphony.app.utils.GlobalLog
+import euphony.app.utils.dataStore
+import euphony.app.utils.get
+import euphony.app.youlyplus.YouLyPlus
+
+object YouLyPlusLyricsProvider : LyricsProvider {
+    init {
+        YouLyPlus.logger = { message ->
+            GlobalLog.append(Log.INFO, "YouLyPlus", message)
+        }
+    }
+
+    override val name = "YouLyPlus"
+
+    override fun isEnabled(context: Context): Boolean = context.dataStore[EnableYouLyPlusLyricsKey] ?: true
+
+    override suspend fun getLyrics(
+        id: String,
+        title: String,
+        artist: String,
+        album: String?,
+        duration: Int,
+    ): Result<String> =
+        YouLyPlus.getLyrics(
+            title = title,
+            artist = artist,
+            album = album,
+            durationSeconds = duration,
+        )
+
+    override suspend fun getAllLyrics(
+        id: String,
+        title: String,
+        artist: String,
+        album: String?,
+        duration: Int,
+        callback: (String) -> Unit,
+    ) {
+        YouLyPlus.getAllLyrics(
+            title = title,
+            artist = artist,
+            album = album,
+            durationSeconds = duration,
+            callback = callback,
+        )
+    }
+}
