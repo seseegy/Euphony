@@ -68,9 +68,7 @@ jobs:
         with:
           python-version: '3.15'
 
-      - name: Generate translation contributor credits
-        run: python scripts/generate_translation_contributors.py
-
+      
       - name: Commit and push translation contributors
         id: push_contributors
         run: |
@@ -214,9 +212,7 @@ jobs:
         with:
           python-version: '3.15'
 
-      - name: Generate translation contributor credits
-        run: python scripts/generate_translation_contributors.py
-
+      
       - name: Set up JDK 21
         uses: actions/setup-java@v6
         with:
