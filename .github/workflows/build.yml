@@ -329,7 +329,6 @@ jobs:
           if-no-files-found: error
   
       - name: Publish Signed Release APK to Private R2
-        if: ${{ secrets.R2_ACCESS_KEY_ID != '' }}
         shell: bash
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
@@ -339,11 +338,15 @@ jobs:
           R2_BUCKET: ${{ vars.R2_BUCKET }}
           APK_PATH: ${{ steps.release_dir.outputs.release_dir }}/out/${{ steps.variant.outputs.apk_name }}
           APK_NAME: ${{ steps.variant.outputs.apk_name }}
-        run: bash .github/scripts/publish-early-access.sh
-
+        run: |
+          if [ -z "$AWS_ACCESS_KEY_ID" ]; then
+            echo "R2 not configured, skipping publish"
+            exit 0
+            fi
+            bash .github/scripts/publish-early-access.sh
+  
   finalizeEarlyAccess:
     name: Finalize Build and Enforce R2 Retention
-    if: ${{ secrets.R2_ACCESS_KEY_ID != '' }}
     runs-on: ubuntu-latest
     needs: build
     steps:
@@ -355,7 +358,12 @@ jobs:
           AWS_DEFAULT_REGION: auto
           R2_ACCOUNT_ID: ${{ vars.R2_ACCOUNT_ID }}
           R2_BUCKET: ${{ vars.R2_BUCKET }}
-        run: python3 .github/scripts/finalize-early-access.py
+        run: |
+          if [ -z "$AWS_ACCESS_KEY_ID" ]; then
+            echo "R2 not configured, skipping retention"
+            exit 0
+            fi
+            python3 .github/scripts/finalize-early-access.py
 
   notifyDiscord:
     name: Announce complete Early Access build
